@@ -147,6 +147,23 @@
             font-size: 0.95rem;
         }
 
+        .radio-mode-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .radio-mode-container label {
+            display: inline;
+            margin: 0;
+            cursor: pointer;
+        }
+
         select, input[type="number"] {
             width: 100%;
             padding: 10px;
@@ -155,6 +172,12 @@
             box-sizing: border-box;
             font-size: 1rem;
             background-color: #f8fafc;
+        }
+
+        input:disabled, select:disabled {
+            background-color: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
         }
 
         button {
@@ -291,7 +314,7 @@
 
 <div class="main-wrapper">
     <h2>المحاكي البصري المتزامن للحركة التوافقية البسيطة</h2>
-    <p style="text-align:center; margin-top:-10px; color:#64748b;">أداة تعليمية تفاعلية لدراسة العلاقة بين الإزاحة، الزمن، وطور الحركة</p>
+    <p style="text-align:center; margin-top:-10px; color:#64748b;">أداة تعليمية تفاعلية لدراسة العلاقة التبادلية بين الإزاحة، المسافة، وزمن الرحلة الدوري</p>
 
     <div class="dashboard">
         <div class="control-panel">
@@ -315,8 +338,23 @@
             </div>
 
             <div class="form-group">
+                <label>معيار تحديد مستهدف الرحلة الاهتزازية:</label>
+                <div class="radio-mode-container">
+                    <input type="radio" id="modeDistance" name="inputMode" value="distanceMode" checked onchange="toggleInputMode()">
+                    <label for="modeDistance">المسافة الكلية (X₀)</label>
+                    <input type="radio" id="modeTime" name="inputMode" value="timeMode" onchange="toggleInputMode()">
+                    <label for="modeTime">زمن الرحلة (T)</label>
+                </div>
+            </div>
+
+            <div class="form-group" id="distanceGroup">
                 <label for="distance">المسافة الكلية المطلوبة المقطوعة (بدلالة X₀):</label>
-                <input type="number" id="distance" step="0.5" min="0.1" value="2.5" onchange="resetSimulation()">
+                <input type="number" id="distance" step="0.25" min="0.05" value="2.5" oninput="syncInputsFromDistance()">
+            </div>
+
+            <div class="form-group" id="timeGroup">
+                <label for="durationT">زمن الرحلة المطلوب الإجمالي (بدلالة الزمن الدوري T):</label>
+                <input type="number" id="durationT" step="0.05" min="0.01" value="0.5833" disabled oninput="syncInputsFromTime()">
             </div>
 
             <button onclick="startSimulation()">تشغيل المحاكاة ونمذجة الحل</button>
@@ -373,6 +411,9 @@
     let isRunning = false;
     
     let totalDistanceTarget = 2.5;
+    let totalTimeTarget = 0.5833;
+    let currentMode = "distanceMode"; // أو timeMode
+
     let phiStart = 0;
     let currentPhase = 0;
     let accumulatedDistance = 0;
@@ -381,11 +422,82 @@
     let pointsHistory = [];
     let maxTimeScale = 2.0;
 
+    // تبديل تفعيل حقول الإدخال بناء على الراديو
+    function toggleInputMode() {
+        const isDistance = document.getElementById('modeDistance').checked;
+        currentMode = isDistance ? "distanceMode" : "timeMode";
+        
+        document.getElementById('distance').disabled = !isDistance;
+        document.getElementById('durationT').disabled = isDistance;
+        
+        resetSimulation();
+    }
+
+    // دالة محاكاة صامتة سريعة لحساب القيمة المقابلة بشكل فوري (الربط العكسي التبادلي)
+    function runStaticPrediction(target, mode) {
+        const startPos = document.getElementById('startPos').value;
+        const direction = document.getElementById('direction').value;
+        
+        let pX = 0.0;
+        let pPhi = 0.0;
+        if (startPos === 'equilibrium') {
+            pPhi = (direction === 'right') ? 0.0 : Math.PI;
+        } else if (startPos === 'positive_max') {
+            pX = 1.0;
+            pPhi = Math.PI / 2;
+        } else if (startPos === 'negative_max') {
+            pX = -1.0;
+            pPhi = -Math.PI / 2;
+        }
+
+        let simPhase = pPhi;
+        let simDist = 0;
+        let simLastX = pX;
+        let simTimeRatio = 0;
+        const step = 0.001; // خطوة صغيرة لدقة رياضية عالية
+
+        if (mode === "distanceMode") {
+            while (simDist < target && simDist < 200) {
+                simPhase += step;
+                let currentX = Math.sin(simPhase);
+                simDist += Math.abs(currentX - simLastX);
+                simLastX = currentX;
+            }
+            return (simPhase - pPhi) / (2 * Math.PI); // ترجع زمن T المقابل
+        } else {
+            let targetPhase = pPhi + (target * 2 * Math.PI);
+            while (simPhase < targetPhase) {
+                simPhase += step;
+                let currentX = Math.sin(simPhase);
+                simDist += Math.abs(currentX - simLastX);
+                simLastX = currentX;
+            }
+            return simDist; // ترجع المسافة المقابلة
+        }
+    }
+
+    function syncInputsFromDistance() {
+        if (currentMode !== "distanceMode") return;
+        let distInput = parseFloat(document.getElementById('distance').value) || 0;
+        if (distInput <= 0) return;
+        
+        let predictedT = runStaticPrediction(distInput, "distanceMode");
+        document.getElementById('durationT').value = predictedT.toFixed(4);
+    }
+
+    function syncInputsFromTime() {
+        if (currentMode !== "timeMode") return;
+        let timeInput = parseFloat(document.getElementById('durationT').value) || 0;
+        if (timeInput <= 0) return;
+        
+        let predictedDist = runStaticPrediction(timeInput, "timeMode");
+        document.getElementById('distance').value = predictedDist.toFixed(2);
+    }
+
     function resetSimulation() {
         if(animationFrameId) cancelAnimationFrame(animationFrameId);
         isRunning = false;
         
-        totalDistanceTarget = parseFloat(document.getElementById('distance').value) || 2.5;
         const startPos = document.getElementById('startPos').value;
         const direction = document.getElementById('direction').value;
 
@@ -405,10 +517,21 @@
         timeRatio = 0;
         pointsHistory = [];
 
+        // جلب وتأكيد القيم بناء على النمط النشط
+        if (currentMode === "distanceMode") {
+            totalDistanceTarget = parseFloat(document.getElementById('distance').value) || 2.5;
+            totalTimeTarget = runStaticPrediction(totalDistanceTarget, "distanceMode");
+            document.getElementById('durationT').value = totalTimeTarget.toFixed(4);
+        } else {
+            totalTimeTarget = parseFloat(document.getElementById('durationT').value) || 0.5833;
+            totalDistanceTarget = runStaticPrediction(totalTimeTarget, "timeMode");
+            document.getElementById('distance').value = totalDistanceTarget.toFixed(2);
+        }
+
         let estimatedCycles = Math.ceil(totalDistanceTarget / 4.0);
         maxTimeScale = Math.max(2.0, estimatedCycles + 0.5);
 
-        document.getElementById('mathStepsDisplay').innerHTML = "بانتظار تشغيل المحاكاة لإيجاد قيم المعادلات الحالية...";
+        document.getElementById('mathStepsDisplay').innerHTML = "بانتظار تشغيل المحاكاة ونمذجة المعادلات الخطية الهندسية الحالية...";
         updateUI();
         drawAll();
     }
@@ -425,11 +548,15 @@
         let dt = 0.012;
         if (totalDistanceTarget > 10) dt = 0.04;
         
-        if (accumulatedDistance < totalDistanceTarget) {
+        // شرط الوقوف مرن حسب وضعية اختيار الطالب
+        let keepGoing = (currentMode === "distanceMode") ? 
+                        (accumulatedDistance < totalDistanceTarget) : 
+                        (timeRatio < totalTimeTarget);
+
+        if (keepGoing) {
             currentPhase += dt;
             let currentX = Math.sin(currentPhase);
             
-            // معالجة ذكية لمنع قيم الصفر السالبة الناتجة عن دقة العوامات البرمجية (-0.00)
             if (Math.abs(currentX) < 0.0001) currentX = 0.0;
             
             accumulatedDistance += Math.abs(currentX - lastX);
@@ -446,8 +573,17 @@
         } else {
             isRunning = false;
             cancelAnimationFrame(animationFrameId);
-            // التأكيد على تصفير القيمة النهائية تماماً إذا كانت قريبة جداً من موضع الاتزان عند التوقف
+            
+            // صقل وضبط القيم الأخيرة عند التوقف لضمان دقة العرض التام
+            if (currentMode === "distanceMode") {
+                timeRatio = totalTimeTarget;
+            } else {
+                accumulatedDistance = totalDistanceTarget;
+                currentPhase = phiStart + (totalTimeTarget * 2 * Math.PI);
+            }
+            lastX = Math.sin(currentPhase);
             if (Math.abs(lastX) < 0.01) lastX = 0.0;
+
             updateUI();
             drawAll();
             generateMathSolution();
@@ -458,7 +594,6 @@
         document.getElementById('currentDist').innerText = accumulatedDistance.toFixed(2);
         document.getElementById('currentTime').innerText = timeRatio.toFixed(4);
         
-        // معالجة الواجهة للتأكد من عدم طباعة إشارة السالب أمام الصفر المطلق
         let displayX = lastX.toFixed(2);
         if (displayX === "-0.00") displayX = "0.00";
         document.getElementById('currentX').innerText = displayX;
@@ -505,7 +640,7 @@
             <span class="comment">1. معادلة الحركة التوافقية المعتمدة بالشروط الابتدائية:</span>
             Equation (1):  ${initialEquation}
             
-            <span class="comment">2. تحديد الإزاحة النهائية اللحظية (x) المقابلة للمسافة الكلية المقطوعة ${totalDistanceTarget} X₀:</span>
+            <span class="comment">2. تحديد الإزاحة النهائية اللحظية (x) المقابلة للمسافة الكلية المقطوعة ${accumulatedDistance.toFixed(2)} X₀:</span>
             Equation (2):  x = ${cleanX} · X₀
             
             <span class="comment">3. التعويض المباشر وحساب زاوية الطور الكلية (Phase):</span>
@@ -513,7 +648,7 @@
             Equation (4):  sin(ωt + 𝜙) = ${cleanX}
             Equation (5):  (ωt + 𝜙) = ${(currentPhase).toFixed(3)} rad
             
-            <span class="comment">4. التعويض عن التردد الزاوي ω = 2π / T لحساب دلالة الزمن الدوري:</span>
+            <span class="comment">4. التعويض عن التردد الزاوي ω = 2π / T لحساب دلالة الزمن الدوري الإجمالي للرحلة:</span>
             Equation (6):  (2π / T) · t = ${(currentPhase - phiStart).toFixed(3)}
             Equation (7):  t = [ ${(currentPhase - phiStart).toFixed(3)} / 2π ] · T
             
@@ -693,7 +828,11 @@
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     }
 
-    window.onload = resetSimulation;
+    window.onload = function() {
+        resetSimulation();
+        // تفعيل التنبؤ البدئي للمرة الأولى
+        syncInputsFromDistance();
+    };
 </script>
 
 </body>
