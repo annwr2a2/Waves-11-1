@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المحاكي المتقدم للحركة التوافقية البسيطة - منصة عمان أكاديمي</title>
+    <style>
+        :root {
+            --primary-color: #0284c7;
+            --primary-hover: #0369a1;
+            --bg-color: #f0fdfa;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --border-color: #cbd5e1;
+            --academy-color: #111827;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* شريط المنصة العلوي */
+        .academy-header {
+            background-color: var(--academy-color);
+            color: #ffffff;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .academy-logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .teacher-info-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .teacher-info-top {
+            font-size: 0.95rem;
+            color: #e2e8f0;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .teacher-phone-top {
+            font-size: 0.95rem;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 6px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            font-weight: bold;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1100px;
+            width: 100%;
+            margin: 30px auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+            flex: 1;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            .academy-header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            .teacher-info-container {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+
+        .control-panel {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            height: fit-content;
+        }
+
+        .visual-panel {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        h2, h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            background-color: #f8fafc;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f0f9ff;
+            border-right: 5px solid var(--primary-color);
+        }
+
+        .result-row {
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        .result-row span {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .canvas-container {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 700px) {
+            .canvas-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        canvas {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .canvas-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+            color: #475569;
+        }
+
+        /* صندوق خطوات الحل الرياضي */
+        .math-solution-panel {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            margin-top: 10px;
+        }
+
+        .math-steps {
+            font-family: 'Courier New', Courier, monospace, Tahoma;
+            font-size: 1.15rem;
+            font-weight: bold;
+            background-color: #1e293b;
+            color: #38bdf8;
+            padding: 20px;
+            border-radius: 8px;
+            direction: ltr;
+            text-align: left;
+            line-height: 2;
+            overflow-x: auto;
+        }
+
+        .math-steps .comment {
+            color: #94a3b8;
+            font-family: 'Segoe UI', Tahoma;
+            font-size: 0.95rem;
+            direction: rtl;
+            text-align: right;
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        /* تذييل الصفحة للمعلم */
+        .academy-footer {
+            background-color: #1e293b;
+            color: #94a3b8;
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+            border-top: 3px solid var(--primary-color);
+            font-size: 0.95rem;
+        }
+
+        .academy-footer a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<header class="academy-header">
+    <div class="academy-logo">
+        🎓 منصة عمان أكاديمي
+    </div>
+    <div class="teacher-info-container">
+        <div class="teacher-info-top">
+            إعداد الأستاذ: أنور البلوشي
+        </div>
+        <div class="teacher-phone-top">
+            📱 هاتف: 92818606
+        </div>
+    </div>
+</header>
+
+<div class="main-wrapper">
+    <h2>المحاكي البصري المتزامن للحركة التوافقية البسيطة</h2>
+    <p style="text-align:center; margin-top:-10px; color:#64748b;">أداة تعليمية تفاعلية لدراسة العلاقة بين الإزاحة، الزمن، وطور الحركة</p>
+
+    <div class="dashboard">
+        <div class="control-panel">
+            <h3>المدخلات والشروط</h3>
+            
+            <div class="form-group">
+                <label for="startPos">موضع البداية (عند t = 0):</label>
+                <select id="startPos" onchange="resetSimulation()">
+                    <option value="equilibrium">موضع الاتزان (x = 0)</option>
+                    <option value="positive_max">أقصى إزاحة موجبة (x = X₀)</option>
+                    <option value="negative_max">أقصى إزاحة سالبة (x = -X₀)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="direction">اتجاه الحركة الابتدائي:</label>
+                <select id="direction" onchange="resetSimulation()">
+                    <option value="right">نحو اليمين / الاتجاه الموجب (+)</option>
+                    <option value="left">نحو اليسار / الاتجاه السالب (-)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="distance">المسافة الكلية المطلوبة المقطوعة (بدلالة X₀):</label>
+                <input type="number" id="distance" step="0.5" min="0.1" value="2.5" onchange="resetSimulation()">
+            </div>
+
+            <button onclick="startSimulation()">تشغيل المحاكاة ونمذجة الحل</button>
+
+            <div class="result-box">
+                <div class="result-row">المسافة المقطوعة حالياً: <span id="currentDist">0.00</span> X₀</div>
+                <div class="result-row">الزمن المستغرق الحالي: <span id="currentTime">0.0000</span> T</div>
+                <div class="result-row" id="fractionText">بالكسور: -</div>
+                <div class="result-row">الإزاحة اللحظية للجسيم (x): <span id="currentX">0.00</span> X₀</div>
+            </div>
+        </div>
+
+        <div class="visual-panel">
+            <div class="canvas-container">
+                <div>
+                    <div class="canvas-title">حركة البندول التذبذبية الفعلي</div>
+                    <canvas id="pendulumCanvas" width="340" height="280"></canvas>
+                </div>
+                <div>
+                    <div class="canvas-title">الدائرة المرجعية (مسقط الإزاحة الزاوي)</div>
+                    <canvas id="circleCanvas" width="340" height="280"></canvas>
+                </div>
+            </div>
+            <div style="width: 100%;">
+                <div class="canvas-title">منحنى الدالة الجيبية المتمدد مع الزمن تلقائياً</div>
+                <canvas id="graphCanvas" width="700" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="math-solution-panel">
+        <h3 style="text-align: right; color: #0f172a; border-bottom: 2px solid var(--primary-color); padding-bottom: 8px;">📋 خطوات الحل الرياضي المباشر المعطى:</h3>
+        <div id="mathStepsDisplay" class="math-steps">
+            اضغط على "تشغيل المحاكاة ونمذجة الحل" لتوليد صياغة المعادلات الرياضية المتسلسلة هنا...
+        </div>
+    </div>
+</div>
+
+<footer class="academy-footer">
+    <p>تم تطوير هذا التطبيق لصالح <b>منصة عمان أكاديمي</b> التعليمية</p>
+    <p>بواسطة الأستاذ القدير: <b>أنور البلوشي</b> | للتواصل والاستفسار هاتفياً أو عبر الواتساب مباشر: <a href="https://wa.me/96892818606" target="_blank">92818606 (968+)</a></p>
+    <p style="font-size: 0.8rem; color: #64748b; margin-top: 15px;">&copy; 2026 جميع الحقوق محفوظة لمنصة عمان أكاديمي</p>
+</footer>
+
+<script>
+    const penCanvas = document.getElementById('pendulumCanvas');
+    const ctxPen = penCanvas.getContext('2d');
+    const cirCanvas = document.getElementById('circleCanvas');
+    const ctxCir = cirCanvas.getContext('2d');
+    const graphCanvas = document.getElementById('graphCanvas');
+    const ctxGraph = graphCanvas.getContext('2d');
+
+    let animationFrameId = null;
+    let isRunning = false;
+    
+    let totalDistanceTarget = 2.5;
+    let phiStart = 0;
+    let currentPhase = 0;
+    let accumulatedDistance = 0;
+    let lastX = 0;
+    let timeRatio = 0;
+    let pointsHistory = [];
+    let maxTimeScale = 2.0;
+
+    function resetSimulation() {
+        if(animationFrameId) cancelAnimationFrame(animationFrameId);
+        isRunning = false;
+        
+        totalDistanceTarget = parseFloat(document.getElementById('distance').value) || 2.5;
+        const startPos = document.getElementById('startPos').value;
+        const direction = document.getElementById('direction').value;
+
+        if (startPos === 'equilibrium') {
+            lastX = 0.0;
+            phiStart = (direction === 'right') ? 0.0 : Math.PI;
+        } else if (startPos === 'positive_max') {
+            lastX = 1.0;
+            phiStart = Math.PI / 2;
+        } else if (startPos === 'negative_max') {
+            lastX = -1.0;
+            phiStart = -Math.PI / 2;
+        }
+
+        currentPhase = phiStart;
+        accumulatedDistance = 0;
+        timeRatio = 0;
+        pointsHistory = [];
+
+        let estimatedCycles = Math.ceil(totalDistanceTarget / 4.0);
+        maxTimeScale = Math.max(2.0, estimatedCycles + 0.5);
+
+        document.getElementById('mathStepsDisplay').innerHTML = "بانتظار تشغيل المحاكاة لإيجاد قيم المعادلات الحالية...";
+        updateUI();
+        drawAll();
+    }
+
+    function startSimulation() {
+        resetSimulation();
+        isRunning = true;
+        animate();
+    }
+
+    function animate() {
+        if (!isRunning) return;
+
+        let dt = 0.012;
+        if (totalDistanceTarget > 10) dt = 0.04;
+        
+        if (accumulatedDistance < totalDistanceTarget) {
+            currentPhase += dt;
+            let currentX = Math.sin(currentPhase);
+            
+            // معالجة ذكية لمنع قيم الصفر السالبة الناتجة عن دقة العوامات البرمجية (-0.00)
+            if (Math.abs(currentX) < 0.0001) currentX = 0.0;
+            
+            accumulatedDistance += Math.abs(currentX - lastX);
+            lastX = currentX;
+            
+            timeRatio = (currentPhase - phiStart) / (2 * Math.PI);
+            
+            pointsHistory.push({t: timeRatio, x: currentX});
+            
+            updateUI();
+            drawAll();
+            
+            animationFrameId = requestAnimationFrame(animate);
+        } else {
+            isRunning = false;
+            cancelAnimationFrame(animationFrameId);
+            // التأكيد على تصفير القيمة النهائية تماماً إذا كانت قريبة جداً من موضع الاتزان عند التوقف
+            if (Math.abs(lastX) < 0.01) lastX = 0.0;
+            updateUI();
+            drawAll();
+            generateMathSolution();
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('currentDist').innerText = accumulatedDistance.toFixed(2);
+        document.getElementById('currentTime').innerText = timeRatio.toFixed(4);
+        
+        // معالجة الواجهة للتأكد من عدم طباعة إشارة السالب أمام الصفر المطلق
+        let displayX = lastX.toFixed(2);
+        if (displayX === "-0.00") displayX = "0.00";
+        document.getElementById('currentX').innerText = displayX;
+
+        let fractionStr = "بالكسور: -";
+        const denoms = [2, 3, 4, 6, 12, 5, 8];
+        for (let d of denoms) {
+            let n = Math.round(timeRatio * d);
+            if (Math.abs((n / d) - timeRatio) < 0.006 && n !== 0) {
+                fractionStr = `بالكسور الاعتيادية المستهدفة: <span>${n}/${d} T</span>`;
+                break;
+            }
+        }
+        document.getElementById('fractionText').innerHTML = fractionStr;
+    }
+
+    function generateMathSolution() {
+        const startPos = document.getElementById('startPos').value;
+        const direction = document.getElementById('direction').value;
+        
+        let initialEquation = "";
+        if (startPos === 'equilibrium') {
+            initialEquation = (direction === 'right') ? "x(t) = X₀ · sin(ωt)" : "x(t) = X₀ · sin(ωt + π)";
+        } else if (startPos === 'positive_max') {
+            initialEquation = "x(t) = X₀ · cos(ωt)";
+        } else if (startPos === 'negative_max') {
+            initialEquation = "x(t) = -X₀ · cos(ωt)";
+        }
+
+        let finalFraction = `${timeRatio.toFixed(4)} · T`;
+        const denoms = [2, 3, 4, 6, 12, 5, 8, 24, 48];
+        for (let d of denoms) {
+            let n = Math.round(timeRatio * d);
+            if (Math.abs((n / d) - timeRatio) < 0.006 && n !== 0) {
+                finalFraction = `(${n}/${d}) · T`;
+                break;
+            }
+        }
+
+        let cleanX = lastX.toFixed(2);
+        if (cleanX === "-0.00") cleanX = "0.00";
+
+        let htmlSteps = `
+            <span class="comment">1. معادلة الحركة التوافقية المعتمدة بالشروط الابتدائية:</span>
+            Equation (1):  ${initialEquation}
+            
+            <span class="comment">2. تحديد الإزاحة النهائية اللحظية (x) المقابلة للمسافة الكلية المقطوعة ${totalDistanceTarget} X₀:</span>
+            Equation (2):  x = ${cleanX} · X₀
+            
+            <span class="comment">3. التعويض المباشر وحساب زاوية الطور الكلية (Phase):</span>
+            Equation (3):  ${cleanX} · X₀ = X₀ · sin(ωt + 𝜙)
+            Equation (4):  sin(ωt + 𝜙) = ${cleanX}
+            Equation (5):  (ωt + 𝜙) = ${(currentPhase).toFixed(3)} rad
+            
+            <span class="comment">4. التعويض عن التردد الزاوي ω = 2π / T لحساب دلالة الزمن الدوري:</span>
+            Equation (6):  (2π / T) · t = ${(currentPhase - phiStart).toFixed(3)}
+            Equation (7):  t = [ ${(currentPhase - phiStart).toFixed(3)} / 2π ] · T
+            
+            <span class="comment">5. النتيجة الرياضية النهائية للزمن المستغرق:</span>
+            Final Answer:  t = ${finalFraction}
+        `;
+        
+        document.getElementById('mathStepsDisplay').innerHTML = htmlSteps;
+    }
+
+    function drawAll() {
+        drawPendulum();
+        drawReferenceCircle();
+        drawSinusoidalGraph();
+    }
+
+    function drawPendulum() {
+        ctxPen.clearRect(0, 0, penCanvas.width, penCanvas.height);
+        const cx = penCanvas.width / 2;
+        const cy = 30;
+        const length = 180;
+        const maxAngle = 0.5; 
+        
+        const currentAngle = lastX * maxAngle; 
+        const bobX = cx + length * Math.sin(currentAngle);
+        const bobY = cy + length * Math.cos(currentAngle);
+
+        ctxPen.strokeStyle = '#64748b';
+        ctxPen.lineWidth = 4;
+        ctxPen.beginPath();
+        ctxPen.moveTo(cx - 40, cy); ctxPen.lineTo(cx + 40, cy);
+        ctxPen.stroke();
+
+        ctxPen.strokeStyle = '#cbd5e1';
+        ctxPen.lineWidth = 1;
+        ctxPen.setLineDash([5, 5]);
+        ctxPen.beginPath();
+        ctxPen.moveTo(cx, cy); ctxPen.lineTo(cx, cy + length + 20);
+        ctxPen.stroke();
+        ctxPen.setLineDash([]);
+
+        ctxPen.strokeStyle = '#475569';
+        ctxPen.lineWidth = 2;
+        ctxPen.beginPath();
+        ctxPen.moveTo(cx, cy);
+        ctxPen.lineTo(bobX, bobY);
+        ctxPen.stroke();
+
+        ctxPen.fillStyle = varColor('--primary-color');
+        ctxPen.beginPath();
+        ctxPen.arc(bobX, bobY, 18, 0, 2 * Math.PI);
+        ctxPen.fill();
+        ctxPen.strokeStyle = '#0369a1';
+        ctxPen.stroke();
+
+        ctxPen.fillStyle = '#ffffff';
+        ctxPen.font = "bold 11px Tahoma";
+        ctxPen.textAlign = "center";
+        ctxPen.fillText("x", bobX, bobY + 4);
+    }
+
+    function drawReferenceCircle() {
+        ctxCir.clearRect(0, 0, cirCanvas.width, cirCanvas.height);
+        const cx = cirCanvas.width / 2;
+        const cy = cirCanvas.height / 2;
+        const radius = 90;
+
+        ctxCir.strokeStyle = '#cbd5e1';
+        ctxCir.lineWidth = 1;
+        ctxCir.beginPath();
+        ctxCir.moveTo(cx - radius - 20, cy); ctxCir.lineTo(cx + radius + 20, cy);
+        ctxCir.moveTo(cx, cy - radius - 20); ctxCir.lineTo(cx, cy + radius + 20);
+        ctxCir.stroke();
+
+        ctxCir.strokeStyle = '#334155';
+        ctxCir.lineWidth = 2;
+        ctxCir.beginPath();
+        ctxCir.arc(cx, cy, radius, 0, 2 * Math.PI);
+        ctxCir.stroke();
+
+        const vectorX = cx + radius * Math.cos(currentPhase);
+        const vectorY = cy - radius * Math.sin(currentPhase); 
+
+        ctxCir.strokeStyle = '#ef4444';
+        ctxCir.lineWidth = 3;
+        ctxCir.beginPath();
+        ctxCir.moveTo(cx, cy);
+        ctxCir.lineTo(vectorX, cy);
+        ctxCir.stroke();
+
+        ctxCir.strokeStyle = '#94a3b8';
+        ctxCir.lineWidth = 1;
+        ctxCir.setLineDash([3, 3]);
+        ctxCir.beginPath();
+        ctxCir.moveTo(vectorX, vectorY);
+        ctxCir.lineTo(vectorX, cy);
+        ctxCir.stroke();
+        ctxCir.setLineDash([]);
+
+        ctxCir.strokeStyle = '#10b981';
+        ctxCir.lineWidth = 2.5;
+        ctxCir.beginPath();
+        ctxCir.moveTo(cx, cy);
+        ctxCir.lineTo(vectorX, vectorY);
+        ctxCir.stroke();
+
+        ctxCir.fillStyle = '#10b981';
+        ctxCir.beginPath();
+        ctxCir.arc(vectorX, vectorY, 5, 0, 2 * Math.PI);
+        ctxCir.fill();
+
+        let cleanX = lastX.toFixed(2);
+        if (cleanX === "-0.00") cleanX = "0.00";
+
+        ctxCir.fillStyle = '#1e293b';
+        ctxCir.font = "12px Tahoma";
+        ctxCir.fillText("+X₀", cx + radius + 5, cy - 5);
+        ctxCir.fillText("-X₀", cx - radius - 25, cy - 5);
+        ctxCir.fillStyle = '#ef4444';
+        ctxCir.fillText(`الإزاحة x = ${cleanX}`, cx - 55, cy + radius + 20);
+    }
+
+    function drawSinusoidalGraph() {
+        ctxGraph.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+        const startX = 50;
+        const centerY = graphCanvas.height / 2;
+        const availableWidth = graphCanvas.width - 80;
+        const ampScale = 70; 
+
+        ctxGraph.strokeStyle = '#64748b';
+        ctxGraph.lineWidth = 1.5;
+        ctxGraph.beginPath();
+        ctxGraph.moveTo(startX, centerY);
+        ctxGraph.lineTo(graphCanvas.width - 20, centerY);
+        ctxGraph.stroke();
+
+        ctxGraph.fillStyle = '#64748b';
+        ctxGraph.font = "11px Tahoma";
+        
+        let stepTicks = maxTimeScale / 5;
+        if(maxTimeScale > 5) stepTicks = Math.ceil(maxTimeScale / 5);
+
+        for(let tVal = 0; tVal <= maxTimeScale; tVal += stepTicks) {
+            let xPos = startX + (tVal * (availableWidth / maxTimeScale)); 
+            if(xPos <= graphCanvas.width - 20) {
+                ctxGraph.beginPath();
+                ctxGraph.moveTo(xPos, centerY - 4); ctxGraph.lineTo(xPos, centerY + 4);
+                ctxGraph.stroke();
+                ctxGraph.fillText(`${tVal.toFixed(1)}T`, xPos - 12, centerY + 18);
+            }
+        }
+
+        if (pointsHistory.length > 0) {
+            ctxGraph.strokeStyle = varColor('--primary-color');
+            ctxGraph.lineWidth = 2.5;
+            ctxGraph.beginPath();
+            
+            for (let i = 0; i < pointsHistory.length; i++) {
+                let xPos = startX + (pointsHistory[i].t * (availableWidth / maxTimeScale));
+                let yPos = centerY - (pointsHistory[i].x * ampScale);
+                
+                if (i === 0) ctxGraph.moveTo(xPos, yPos);
+                else ctxGraph.lineTo(xPos, yPos);
+            }
+            ctxGraph.stroke();
+
+            let currentGraphX = startX + (timeRatio * (availableWidth / maxTimeScale));
+            let currentGraphY = centerY - (lastX * ampScale);
+            ctxGraph.fillStyle = '#ef4444';
+            ctxGraph.beginPath();
+            ctxGraph.arc(currentGraphX, currentGraphY, 5, 0, 2 * Math.PI);
+            ctxGraph.fill();
+        }
+    }
+
+    function varColor(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    window.onload = resetSimulation;
+</script>
+
+</body>
+</html>
